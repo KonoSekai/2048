@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<!--本页面仅供学习交流使用,禁止用作商业用途-->
+<!--所有图片及素材均来自互联网,版权为发布者所有,如有侵权请联系本人删除-->
+<html lang="en">
+<head>
+    <title>Sekai's 2048</title>
+    <meta charset="UTF-8">
+    <!--标签页小图标-->
+    <link rel="icon" href="img/ac.jpg">
+    <!--引入css样式文件-->
+    <link rel="stylesheet" href="css/style.css">
+    <!--引入Vue.js-->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+    <!--引入Cookies.js-->
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+</head>
+
+<body>
+<!--主界面-->
+<div class="main" id="main">
+    <!--标题信息-->
+    <div class="header">
+        <p class="title">2048<span class="author">By&nbsp;<a href="mailto:sekai@anyplayer.cn"
+                                                             style="text-decoration: none"
+                                                             target="_blank">Sekai</a></span>
+        </p>
+        <div class="scores-container">
+            <p class="score-container">score<br>{{score}}<span class="score-addition" v-for="score in additions"
+                                                               :class="'color-'+score">+{{score}}</span></p>
+            <p class="score-container">best<br>{{best}}</p>
+        </div>
+    </div>
+    <!--above-game-->
+    <div class="above-game">
+        <p class="game-intro">Join the numbers and get to the <strong>2048 tile</strong>!</p>
+        <a class="restart-button" @click="restart">New Game</a>
+    </div>
+    <!--游戏界面控件-->
+    <div class="game-container">
+        <!--消息控件-->
+        <div class="game-message" v-if="messageDisplay">
+            <div class="message-box">
+                <span class="message">{{message}}</span>
+                <a class="retry-button" @click="restart">Try again</a>
+            </div>
+        </div>
+        <!--tile控件-->
+        <div class="tile-container">
+            <!--渲染集合&绑定样式-->
+            <div class="tile" v-for="t in tiles" :class="t.classes">
+                <!--插入tile分值-->
+                <p class="tile-score">{{t.value}}</p>
+            </div>
+        </div>
+        <!--背景控件-->
+        <div class="grid-container">
+            <!--双层循环分别显示row&cell-->
+            <div class="grid-row" v-for="x in 4">
+                <div class="grid-cell" v-for="y in 4"></div>
+            </div>
+        </div>
+    </div>
+    <!--游戏说明-->
+    <p><strong>HOW TO PLAY:</strong> Use your <strong>arrow keys</strong> to move the tiles.
+        When two tiles
+        with the
+        same picture touch, they <strong>merge into one!</strong></p>
+    <div class="loading-box">
+        <div class="tile" v-for="i in 11" :class="'tile-'+Math.pow(2, i)"></div>
+    </div>
+</div>
+<script>
+    new Vue({
+        data() {
+            return {
+                best: 0,    //最佳分数
+                score: 0,   //目前分数
+                tiles: [],  //用于渲染tile的数组
+                cells: [
+                    {index: 0, value: 0}, {index: 1, value: 0}, {index: 2, value: 0}, {index: 3, value: 0},
+                    {index: 4, value: 0}, {index: 5, value: 0}, {index: 6, value: 0}, {index: 7, value: 0},
+                    {index: 8, value: 0}, {index: 9, value: 0}, {index: 10, value: 0}, {index: 11, value: 0},
+                    {index: 12, value: 0}, {index: 13, value: 0}, {index: 14, value: 0}, {index: 15, value: 0}
+                ],  //实际记录单元格value的数组
+                additions: [],  //用于渲染上浮分数
+                message: 'Game Over!',  //消息界面显示文字
+                messageDisplay: false,  //控制消息界面是否显示
+            }
+        },
+        watch: {
+            score: function (score) { //监视分数是否有变化
+                Cookies.set(`score`, this.score, 7) //记录当前分数
+                if (score > this.best) {    //判断是否为最佳分数
+                    this.best = score
+                    Cookies.set(`best`, this.best, 7)   //记录最佳分数
+                }
+            },
+        },
+        methods: {
+            init() {    //初始化游戏界面
+                let best = parseInt(Cookies.get('best'))    //载入最佳分数
+                this.best = best > 0 ? best : 0
+
+                if (Cookies.get('over') != 1) { //判断是否新开游戏
+                    this.restart()  //开启新游戏
+
+                    return
+                }
+
+                let values = eval(Cookies.get('cells'))
+                if (typeof values === 'object' && values.length > 0) {  //读取之前并判断游戏数据是否存在
+                    let score = parseInt(Cookies.get('score'))  //载入目前分数
+                    this.score = score > 0 ? score : 0
+
+                    for (let i = 0; i < 16; i++) {  //载入游戏数据
+                        this.cells[i] = {...this.cells[i], value: values[i]}
+                    }
+
+                    this.refresh()  //渲染游戏界面
+                }
+            },
+            move(key) { //移动事件
+                let flag    //记录移动
+                let step = 1 //移动步数
+                let cells = this.rotateCells(key)   //旋转cell数组以便向左移动
+                for (let i = 0; i < cells.length; i++) {    //循环移动方块
+                    let value = cells[i].value //当前位置值
+
+                    let modulo = i % 4 //取模
+                    if (modulo === 0) continue  //如果是最左边则不进行移动
+
+                    if (value > 0) { //判断是否存在方块
+                        let target = i - step   //目标位置
+                        let v = cells[target].value //目标位置值
+
+                        if (target < i && value === v) {    //判断目标位置是否可以合并,目标位置是否小于当前位置,目标位置值是否和当前位置值相等
+                            value *= 2  //计算合并后的值
+                            this.score += value //更新分数
+                            this.additions.push(value) //上浮新增分数
+                            this.merged(cells[target].index, value) //增加合并动画方块
+                        } else if (v == 0) step++   //如果目标位置没有方块则下一需要移动的方块移动步数++
+                        else if (v > 0) target++    //如果目标位置不能合并，则目标位置为原目标位置的右边一位
+
+
+                        if (target < i) {   //判断目标位置是否可以移动
+                            flag = true //记录移动
+                            cells[i].value = 0 //当前位置值重置
+                            cells[target].value = value //目标位置值更新
+                            this.translation(key, i - target, cells[i].index)   //更新移动动画
+                        }
+                    } else step++   //不存在则跳过且下一需要移动的方块移动步数++
+
+                    if (modulo === 3) step = 1  //当前位置为最右侧,重置移动步数
+                }
+
+                if (flag) this.newTile()//判断是否有移动
+            },
+            check() {
+                let cells = this.cells
+
+                if (cells.some((cell) => {    //判断cell数组是否含有2048
+                    return cell.value === 2048
+                })) {    //判断是否完成游戏
+                    Cookies.set('over', 0, 7)  //下次打开页面开始新游戏
+                    this.message = `You Win!`
+                    this.messageDisplay = true  //显示消息界面
+                    return
+                }
+
+                if (cells.filter((cell) => {    //判断cell数组是否全部有值
+                    return cell.value > 0
+                }).length < 16) return
+
+
+                let flag = true
+                for (let i = 0; i < 15; i++) {  //判断是否可以继续游戏
+                    if (cells[i].value === 2048 ||
+                        cells[i].value === cells[i + 1].value ||
+                        (i < 12 && cells[i].value === cells[i + 4].value)) {
+                        flag = false
+                        break
+                    }
+                }
+
+                console.log(flag)
+
+                if (flag) {
+                    Cookies.set('over', 0, 7)  //下次打开界面开始新游戏
+                    this.message = `Game Over!`
+                    this.messageDisplay = true  //显示消息界面
+                }
+            },
+            refresh() { //刷新tile
+                let cells = this.cells.filter((cell) => {   //获取有值的cells
+                    return cell.value > 0
+                })
+
+                let tiles = []
+                cells.forEach((cell) => {   //遍历有值的cells
+                    tiles.push({    //将cell展开并添加classes属性并push进tiles
+                        ...cell,
+                        classes: [
+                            `tile-${cell.value}`,   //tile样式,背景颜色&背景图片
+                            `position-X-${Math.floor(cell.index % 4)}`, //X轴位置
+                            `position-Y-${Math.floor(cell.index / 4)}`  //Y轴位置
+                        ]
+                    })
+                })
+
+                this.tiles = tiles  //更新Vue实力上的tiles数组
+
+                let values = []
+                this.cells.forEach((cell) => {  //遍历cells并push进values
+                    values.push(cell.value)
+                })
+
+                Cookies.set('over', 1, 7)   //下次打开页面加载数据
+                Cookies.set(`cells`, JSON.stringify(values), 7) //将values转化为JSON并记录
+
+                this.check()//调用检测游戏是否结束方法
+            },
+            newTile() { //生成新的tile
+                let cells = this.cells.filter((cell) => {   //获取没有值的cells
+                    return cell.value === 0
+                })
+
+                let v = Math.ceil(Math.random() * 2) * 2    //随机值
+                let cell = {    //展开获取的随cell并更新value,使用展开是为了避免浅拷贝
+                    ...cells[Math.floor(Math.random() * cells.length)],
+                    value: v
+                }
+
+                let i = cell.index  //获取新cell的index值
+                this.cells[i] = cell    //根据index将cells更新
+                this.tiles.push({   //向tiles内push带有新增动画的的tile
+                    ...cell,
+                    classes: [
+                        `tile-${v}`,    //tile样式,背景颜色&背景图片
+                        `position-X-${Math.floor(i % 4)}`,  //X轴位置
+                        `position-Y-${Math.floor(i / 4)}`,  //Y轴位置
+                        'tile-new'  //新增样式
+                    ]
+                })
+
+                setTimeout(this.refresh, 200)   //延时渲染游戏界面
+            },
+            restart() { //重置游戏
+                this.score = 0  //重置当前分数
+                this.tiles = [] //重置tiles
+                this.additions = [] //重置上浮分数
+                this.messageDisplay = false //关闭message面板
+
+                for (let i = 0; i < 16; i++) this.cells[i] = {index: i, value: 0}   //重置cells
+
+                Cookies.set('over', 1, 7)   //下次打开页面加载数据
+
+                setTimeout(() => {  //延时新增两个tile
+                    this.newTile()
+                    this.newTile()
+                }, 100)
+            },
+            rotateCells(key) {  //旋转cells
+                if (key === 0) return this.cells    //如果向左移动则直接return
+
+                let count = 4 - key //向上旋转3次，向右旋转2次，向下旋转1次
+
+                let cells = new Array(16)   //新建cells
+                for (let j = 0; j < count; j++) {   //顺时针旋转数组
+                    let temp = j > 0 ? cells : this.cells   //辅助数组储存当前cells
+                    cells = new Array(16)
+                    for (let i = 0; i < 16; i++) {  //遍历辅助数组以旋转cells
+                        let modulo = i % 4 //取模
+
+                        if (i < 4) cells[i + 3 * (1 + modulo)] = temp[i] //第一排,+3*1,+3*2,+3*3,+3*4
+                        else if (i < 8) cells[i - 2 + 3 * modulo] = temp[i]  //第二排,+3*0-2,+3*1-2,+3*2-2,+3*3-2
+                        else if (i < 12) cells[i - 7 + 3 * modulo] = temp[i]   //第三排,+3*0-2,+3*1-2,+3*2-2,+3*3-2
+                        else if (i) cells[i + 3 * (modulo - 4)] = temp[i]  //第四排,+3*-4,+3*-3,+3*-2,+3*-1
+                    }
+                }
+
+                return cells    //返回旋转后的cells
+            },
+            merged(index, value) {  //合并动画
+                this.tiles.push({   //向tiles内push带有合并动画的的tile
+                    index: index, value: value, classes: [
+                        `tile-${value}`,    //tile样式,背景颜色&背景图片
+                        `position-X-${Math.floor(index % 4)}`,  //X轴位置
+                        `position-Y-${Math.floor(index / 4)}`,  //Y轴位置
+                        `tile-merged`   //合并样式
+                    ]
+                })
+            },
+            translation(key, step, index) { //移动动画
+                this.tiles.forEach((tiles) => { //遍历tiles
+                    if (tiles.index === index) {    //根据index查找tile
+                        let style
+                        switch (key) {  //根据方向增加并更新index
+                            case 0:
+                                style = `translate-left-${step}`
+                                tiles.index -= step
+                                break
+                            case  1:
+                                style = `translate-up-${step}`
+                                tiles.index -= step * 4
+                                break
+                            case 2:
+                                style = `translate-right-${step}`
+                                tiles.index += step
+                                break
+                            case 3:
+                                style = ` translate-down-${step}`
+                                tiles.index += step * 4
+                                break
+                        }
+                        tiles.classes.push(style)   //增加移动样式
+                        tiles.classes.push('transition')    //增加过渡样式
+                    }
+                })
+            }
+        },
+        mounted() {
+            this.init() //调用初始化方法
+        },
+        created() {
+            document.onkeydown = () => {    //识别按键并屏蔽页面滚动
+                let key = window.event.keyCode;
+
+
+                if (key === 65 || key === 37) key = 0
+                else if (key === 87 || key === 38) key = 1
+                else if (key === 68 || key === 39) key = 2
+                else if (key === 83 || key === 40) key = 3
+                else key = 4
+
+                if (!this.messageDisplay && key > -1 && key < 4) {
+                    window.event.keyCode = 0
+                    window.event.returnValue = false
+
+                    this.move(key)  //调用移动方法
+                }
+            }
+        },
+        destroyed() {   //恢复页面功能
+            window.removeEventListener('keydown', event => {
+                event.preventDefault()
+            })
+        }
+    }).$mount("#main")
+</script>
+</body>
+
+</html>

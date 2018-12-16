@@ -1,0 +1,205 @@
+* { border: 0; box-sizing: border-box; color: #776E65;margin: 0;padding: 0;font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;font-size: 18px;}
+
+p {display: block}
+
+hr { border-bottom: 1px solid #d8d4d0;margin: 20px 0;}
+
+body {background: url("../img/ac.jpg") left bottom / 15% no-repeat;}
+
+/*
+    主界面
+ */
+.main {margin: 100px auto 56px;width: 500px;}
+
+/*
+    顶部标题
+ */
+
+.title {font-size: 80px;font-weight: bold;line-height: 80px;}
+
+.author {font-size: 16px;font-weight: normal;margin-left: 10px}
+
+.scores-container {height: 80px;position: relative;}
+
+.score-container {background: #BBADA0;border-radius: 3px;color: #FFF;font-size: 16px;font-weight: bolder;line-height: 18px;margin-top: 18px;padding: 8px 20px;position: relative;text-align: center;}
+
+.score-container:first-child {margin-right: 5px;}
+
+.score-addition {animation: bubble 2s forwards;color: rgb(255, 255, 255);display: block;font-size: 14px;left: 40%;padding: 2px 5px;position: absolute;top: 20px;z-index: 9999;}
+
+.above-game {line-height: 40px;}
+
+.restart-button {background: #8F7A66;border-radius: 3px;color: #FFF;font-weight: 600;line-height: 20px;padding: 10px 20px}
+
+@keyframes bubble {
+    from { top: 20px; display: inline-flex;}
+    to {background: rgba(0, 0, 0, 0);color: rgba(0, 0, 0 0);top: -20px;}
+}
+
+/*
+    鼠标样式
+ */
+.restart-button:hover, .retry-button:hover {cursor: pointer;}
+
+/*
+    游戏界面
+ */
+.game-message {background: rgba(238, 228, 218, 0.88);height: 500px;left: 0;position: absolute;text-align: center;top: 0;width: 500px;z-index: 999999;}
+
+.message-box {animation: appear 2s forwards;height: 100%;width: 100%}
+
+.message {display: block;font-size: 66px;margin: 160px auto 50px;}
+
+.retry-button {background: #8F7A66;border-radius: 3px;color: #FFF;padding: 10px 20px;}
+
+.game-container {background: #BBADA0;border-radius: 4px;height: 500px;margin: 50px 0;padding: 18px;position: relative;width: 500px;}
+
+.grid-container {position: relative;z-index: 1;}
+
+.grid-row {height: 104px;margin-bottom: 16px;}
+
+.grid-row:last-child {margin-bottom: 0;}
+
+.grid-cell {background-color: rgba(238, 228, 218, 0.35);border-radius: 3px;display: inline-block;height: 104px;margin-right: 16px;width: 104px;}
+
+.grid-cell:last-child {margin-right: 0;}
+
+/*
+    描述
+ */
+
+.loading-box {left: 0;overflow: hidden;position: fixed;top: 0;z-index: -1;}
+
+/*
+    磁贴
+ */
+
+.tile-container {position: absolute;z-index: 9;}
+
+.tile-2 {background: #EEE4DA url("../img/2.png") no-repeat center/ cover; }
+
+.tile-4 {background: #EDE0C8 url("../img/4.png") no-repeat center/ cover; }
+
+.tile-8 {background: #F2B179 url("../img/8.png") no-repeat center/ cover; }
+
+.tile-16 {background: #F59563 url("../img/16.png") no-repeat center/ cover; }
+
+.tile-32 {background: #F67C5F url("../img/32.png") no-repeat center/ cover; }
+
+.tile-64 {background: #F65E3B url("../img/64.png") no-repeat center/ cover; }
+
+.tile-128 {background: #EDCF72 url("../img/128.png") no-repeat center/ cover; }
+
+.tile-256 {background: #EDCC61 url("../img/256.png") no-repeat center/ cover; }
+
+.tile-512 {background: #EDC850 url("../img/512.png") no-repeat center/ cover; }
+
+.tile-1024 {background: #EDC53F url("../img/1024.png") no-repeat center/ cover; }
+
+.tile-2048 {background: #EDC22E url("../img/2048.png") no-repeat center/ cover; }
+
+.tile {border-radius: 3px;display: inline-block;height: 104px;position: absolute;width: 104px;}
+
+.tile-merged {animation: pop 200ms ease;z-index: 999}
+
+.tile-new {animation: appear 200ms ease;}
+
+.tile-score {bottom: 0;color: #000;right: 0;padding: 2px 4px;position: absolute;}
+
+@keyframes appear {
+    0% { opacity: 0; transform: scale(0); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pop {
+    0% {opacity: 1; transform: scale(1); }
+    50% { opacity: 1;transform: scale(1.2); }
+    100% { opacity: 1;transform: scale(1); }
+}
+
+/*
+    位置
+ */
+.position-X-0 {left: 0;}
+
+.position-X-1 {left: 120px;}
+
+.position-X-2 {left: 240px;}
+
+.position-X-3 {left: 360px;}
+
+.position-Y-0 {top: 0;}
+
+.position-Y-1 {top: 120px;}
+
+.position-Y-2 {top: 240px;}
+
+.position-Y-3 {top: 360px;}
+
+.transition {transition: transform 100ms ease-in-out;}
+
+.translate-left-1 {transform: translateX(-120px)}
+
+.translate-left-2 {transform: translateX(-240px)}
+
+.translate-left-3 {transform: translateX(-360px)}
+
+.translate-right-1 {transform: translateX(120px)}
+
+.translate-right-2 {transform: translateX(240px)}
+
+.translate-right-3 {transform: translateX(360px)}
+
+.translate-up-1 {transform: translateY(-120px)}
+
+.translate-up-2 {transform: translateY(-240px)}
+
+.translate-up-3 {transform: translateY(-360px)}
+
+.translate-down-1 {transform: translateY(120px)}
+
+.translate-down-2 {transform: translateY(240px)}
+
+.translate-down-3 {transform: translateY(360px)}
+
+/*
+    描述
+ */
+
+.description-row .tile {position: static}
+
+/*
+    浮动效果
+ */
+
+.header, .scores-container, .above-game {overflow: hidden}
+
+.title, .score-container, .game-intro {float: left;}
+
+.scores-container, .restart-button {float: right;}
+
+/*
+    数字的背景颜色
+*/
+
+.color-2 {background: #EEE4DA;}
+
+.color-4 {background: #EDE0C8;}
+
+.color-8 {background: #F2B179;}
+
+.color-16 {background: #F59563;}
+
+.color-32 {background: #F67C5F;}
+
+.color-64 {background: #F65E3B;}
+
+.color-128 {background: #EDCF72;}
+
+.color-256 {background: #EDCC61;}
+
+.color-512 {background: #EDC850;}
+
+.color-1024 {background: #EDC53F;}
+
+.color-2048 {background: #EDC22E;}
