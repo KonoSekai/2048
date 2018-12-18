@@ -20,7 +20,7 @@
 <div class="main" id="main">
     <!--标题信息-->
     <div class="header">
-        <p class="title">2048<span class="author">By&nbsp;<a href="mailto:sekai@anyplayer.cn"
+        <p class="title">2048<span class="author">By&nbsp;<a href="https://github.com/KonoSekai/2048"
                                                              style="text-decoration: none"
                                                              target="_blank">Sekai</a></span>
         </p>
@@ -123,6 +123,7 @@
                 let flag    //记录移动
                 let step = 1 //移动步数
                 let cells = this.rotateCells(key)   //旋转cell数组以便向左移动
+
                 for (let i = 0; i < cells.length; i++) {    //循环移动方块
                     let value = cells[i].value //当前位置值
 
@@ -171,18 +172,16 @@
                     return cell.value > 0
                 }).length < 16) return
 
-
                 let flag = true
                 for (let i = 0; i < 15; i++) {  //判断是否可以继续游戏
-                    if (cells[i].value === 2048 ||
-                        cells[i].value === cells[i + 1].value ||
-                        (i < 12 && cells[i].value === cells[i + 4].value)) {
+                    let v = cells[i].value
+                    if (v === 2048 ||
+                        (i < 12 && v === cells[i + 4].value) ||
+                        (i % 4 < 3 && v === cells[i + 1].value)) {
                         flag = false
                         break
                     }
                 }
-
-                console.log(flag)
 
                 if (flag) {
                     Cookies.set('over', 0, 7)  //下次打开界面开始新游戏

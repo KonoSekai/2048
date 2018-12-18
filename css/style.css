@@ -46,7 +46,7 @@ body {background: url("../img/ac.jpg") left bottom / 15% no-repeat;}
  */
 .game-message {background: rgba(238, 228, 218, 0.88);height: 500px;left: 0;position: absolute;text-align: center;top: 0;width: 500px;z-index: 999999;}
 
-.message-box {animation: appear 2s forwards;height: 100%;width: 100%}
+.message-box {animation: appear 2s forwards;}
 
 .message {display: block;font-size: 66px;margin: 160px auto 50px;}
 
